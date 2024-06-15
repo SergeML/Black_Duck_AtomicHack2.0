@@ -11,6 +11,7 @@ from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QFont, QBrush
 from ultralytics import YOLO
 
 from application.model import DetectModel
+from application.reportWindow import ReportWindow
 from application.settingsDB import connection_parameters as config
 
 from application.classes import colors, class_names, class_names_full
@@ -35,8 +36,15 @@ class MainWindow(QMainWindow):
 
     def setup_ui(self):
         # Main window setup
+
         self.setWindowTitle("Defect Detector")
-        self.setGeometry(100, 100, 800, 600)
+        self.resize(1200, 800)
+
+        screen = self.screen().availableGeometry()
+        size = self.geometry()
+        x = (screen.width() - size.width()) // 2
+        y = (screen.height() - size.height()) // 2
+        self.move(x, y)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -97,13 +105,15 @@ class MainWindow(QMainWindow):
         # Report menu
         report_menu = menu_bar.addMenu("&Отчёт")
         report_menu_make_report = report_menu.addAction("Создать отчёт")
+        report_menu_open_report = report_menu.addAction("Посмотреть отчёт")
         report_menu_load_report = report_menu.addAction("Загрузить отчёт")
-        report_menu.addSeparator()
-        report_menu_submit = report_menu.addAction("Создать submission")
+        # report_menu.addSeparator()
+        # report_menu_submit = report_menu.addAction("Создать submission")
 
         report_menu_make_report.triggered.connect(self.make_report)
+        report_menu_open_report.triggered.connect(self.open_report)
         report_menu_load_report.triggered.connect(self.load_report)
-        report_menu_submit.triggered.connect(self.make_submit)
+        # report_menu_submit.triggered.connect(self.make_submit)
 
         # About menu
         database_menu = menu_bar.addMenu("&База данных")
@@ -207,16 +217,19 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------------------------------------------------------#
     def inference_one(self, file_path=None):
-        if not file_path:
-            file_path = self.list_widget.currentItem().data(Qt.ItemDataRole.UserRole)
+        try:
+            if not file_path:
+                file_path = self.list_widget.currentItem().data(Qt.ItemDataRole.UserRole)
 
-            output = self.model.inference(file_path)
-            self.report |= output
+                output = self.model.inference(file_path)
+                self.report |= output
 
-            item = self.list_widget.currentItem()
-            if item:
-                self.change_image_in_list(item)
-                self.display_image(item)
+                item = self.list_widget.currentItem()
+                if item:
+                    self.change_image_in_list(item)
+                    self.display_image(item)
+        except AttributeError:
+            QMessageBox.critical(self, 'Warning', "Нет доступных для детектирования изображений.")
 
     def inference_all(self):
         paths = self.get_all_paths()
@@ -240,6 +253,9 @@ class MainWindow(QMainWindow):
             item = self.list_widget.currentItem()
             self.display_image(item)
 
+        else:
+            QMessageBox.critical(self, 'Warning', "Нет доступных для детектирования изображений.")
+
     def switch_auto_detect(self):
         self.auto_detecting = False if self.auto_detecting else True
 
@@ -260,8 +276,9 @@ class MainWindow(QMainWindow):
             with open(path, 'w') as file:
                 json.dump(self.report, file)
 
-    def edit_report(self):
-        pass
+    def open_report(self):
+        table_window = ReportWindow(self.report, self)
+        table_window.show()
 
     def load_report(self):
         path, _ = QFileDialog.getOpenFileName(self, "Save Database", '', "Database Files (*.json);;All Files (*)")

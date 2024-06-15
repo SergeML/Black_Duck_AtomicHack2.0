@@ -13,9 +13,9 @@ class DetectModel:
         image = cv2.imread(file_path)
         result = self.model_detection.predict(image, verbose=False)
 
-        labels = result[0].boxes.cls.cpu().numpy()
-        bboxes = result[0].boxes.xywh.cpu().numpy()
-        bboxesn = result[0].boxes.xywhn.cpu().numpy()
+        labels = result[0].boxes.cls.cpu().numpy().tolist()
+        bboxes = result[0].boxes.xywh.cpu().numpy().tolist()
+        bboxesn = result[0].boxes.xywhn.cpu().numpy().tolist()
 
         return {file_path: {'bbox': bboxes, 'class': labels, 'bboxn': bboxesn}}
 
