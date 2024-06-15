@@ -21,15 +21,14 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # Initialization
-        application_dir = os.path.dirname(__file__)
-        weights_path = os.path.join(application_dir, 'weights', 'last.pt')
+        weights_path = os.path.join('./weights', 'best.pt')
 
         self.auto_detecting = False
-        self.report = {}
         self.image_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
+        self.report = {}
         self.connection = None
 
-        self.model = DetectModel(YOLO())
+        self.model = DetectModel(YOLO(weights_path))
         self.model.load(weights_path)
 
         self.setup_ui()
