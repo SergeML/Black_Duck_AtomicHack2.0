@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # Initialization
-        weights_path = os.path.join('./weights', 'best.pt')
+        weights_path = os.path.join('./weights', 'stupidYOLO.pt')
 
         self.auto_detecting = False
         self.image_extensions = ('.png', '.jpg', '.jpeg', '.bmp', '.gif')
@@ -61,7 +61,7 @@ class MainWindow(QMainWindow):
 
         self.list_widget = QListWidget()
         self.list_widget.setIconSize(QSize(146, 100))
-        self.list_widget.setMinimumWidth(210)
+        self.list_widget.setMinimumWidth(230)
         self.list_widget.itemClicked.connect(self.display_image)
 
         self.bottom_label = QLabel("")
@@ -441,7 +441,7 @@ class MainWindow(QMainWindow):
                     data = [file_name] + bboxn_ + [label_]
 
                     QUERY = INSERT % data
-                    cursor.execute((QUERY))
+                    cursor.execute(QUERY)
                     data = cursor.fetchall()
 
             self.connection.close()

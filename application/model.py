@@ -18,11 +18,3 @@ class DetectModel:
         bboxesn = result[0].boxes.xywhn.cpu().numpy().tolist()
 
         return {file_path: {'bbox': bboxes, 'class': labels, 'bboxn': bboxesn}}
-
-
-
-
-
-
-
-
