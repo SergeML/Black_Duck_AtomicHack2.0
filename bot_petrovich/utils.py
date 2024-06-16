@@ -8,10 +8,10 @@ from ultralytics import YOLO
 import pandas as pd
 
 colors = {
-    '0': (255, 0, 0),
+    '0': (0, 0, 255),
     '1': (0, 255, 0),
-    '2': (0, 0, 255),
-    '3': (255, 255, 0),
+    '2': (255, 0, 0),
+    '3': (0, 255, 255),
     '4': (255, 0, 255)
 }
 
@@ -88,6 +88,7 @@ class StackedYOLO:
 def paint(path, bbox, classes, file):
     # Загрузка изображения
     image = cv2.imread(path)
+
     for box, label in zip(bbox, classes):
 
     # Координаты и размеры bounding box (пример)
@@ -100,6 +101,7 @@ def paint(path, bbox, classes, file):
         end_y = y + h
 
         # Нарисуем прямоугольник на изображении (цвет - зелёный, толщина линии - 2)
+
         cv2.rectangle(image, (x, y), (end_x, end_y), colors[str(int(label))], 2)
 
 
