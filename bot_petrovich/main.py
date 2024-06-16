@@ -104,7 +104,7 @@ async def end_repo(message: Message):
         Зугрузи фото или видео, прежде чем закончить отчёт. Сейчас я не вижу швов для отчёта.
         ''')
     else:
-        pass # логика формирования отчёта
+        pass # логика формирования отчёта должна быть тут
         try:
             connection = pyodbc.connect(
                 f"DSN={config.DSN};UID={config.UID};PWD={config.PWD}"
@@ -168,13 +168,15 @@ async def photo_message(message: Message, bot: Bot):
                                       'frames': []
                                       }
     await bot.download(message.photo[-1], destination=os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg'))
+    # тут надо добавить обработку файла с диска и его перезалив на диск в виде обработанного файла
     await message.reply_photo(
         FSInputFile(os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg'))
     )
-    ans = 0
-    # Подсказка для студента, возможно, стоит добавить цикл по всем меткам
-    if data[message.from_user.id]['is_student']:
-        await message.reply(lib[ans])
+    # после отправки файла, мы можем его затереть на диске
+    for label in model_response_classes_unique: #для уникальных типов дефектов на пикче
+        # Подсказка для студента, возможно, стоит добавить цикл по всем меткам
+        if data[message.from_user.id]['is_student']:
+            await message.reply(lib[int(label)])
 
 # Хэндлер на работу с видео
 @dp.message(F.photo)
