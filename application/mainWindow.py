@@ -10,11 +10,11 @@ from PyQt6.QtCore import Qt, QSize, QRect
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QPen, QColor, QFont, QBrush
 from ultralytics import YOLO
 
-from application.model import DetectModel
-from application.reportWindow import ReportWindow
-from application.settingsDB import connection_parameters as config
+from model import DetectModel
+from reportWindow import ReportWindow
+from settingsDB import connection_parameters as config
 
-from application.classes import colors, class_names, class_names_full
+from classes import colors, class_names, class_names_full
 
 
 class MainWindow(QMainWindow):

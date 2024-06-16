@@ -1,9 +1,6 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QDialog
 import os
-from PyQt6.QtCore import Qt
-
-from application.classes import colors, class_names, class_names_full
+from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem, QVBoxLayout, QDialog
+from classes import class_names, class_names_full
 
 
 class ReportWindow(QDialog):
