@@ -1,11 +1,7 @@
-﻿PyQt6
-pyodbc
-ultralytics
-opencv-python
-dill
-
-
+PyQt6==6.7.0
+pyodbc==5.1.0
+ultralytics==8.2.32
+opencv-python==4.10.0.82
+dill==0.3.8
 aiogram==3.7.0
 pyodbc==5.1.0
-
-
