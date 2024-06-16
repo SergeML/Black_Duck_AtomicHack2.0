@@ -1,4 +1,7 @@
-BOT_TOKEN = 'token'
-DSN = 'dsn'
-UID = 'uid'
-PWD = 'pwd'
+# токен-телеграм бота, токен можно получить в чате с ботом https://t.me/BotFather
+BOT_TOKEN = 'token' # токент telegram-бота
+
+# параметры для подключения к базе 1С, есть возможность интеграции
+DSN = 'dsn' # dsn
+UID = 'uid' # логин
+PWD = 'pwd' # пароль
