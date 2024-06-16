@@ -7,7 +7,8 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters.command import Command
 from lib import lib
 import pyodbc
-
+from utils import StackedYOLO, inference_model, paint
+from ultralytics import YOLO
 
 
 # Включаем логирование, чтобы не пропустить важные сообщения
@@ -18,6 +19,8 @@ bot = Bot(token=config.BOT_TOKEN)
 dp = Dispatcher()
 # Данные
 data = {}
+model = StackedYOLO([YOLO('./weights/YOLO.pt')])
+
 
 # Хэндлер на команду старт
 @dp.message(Command("start"))
@@ -31,6 +34,25 @@ async def start_message(message: Message):
         await message.reply(f'Рад знакомству, {message.from_user.full_name}!')
     else:
         await message.reply(f'Рад снова видеть тебя, {message.from_user.full_name}!')
+
+#   Хэндлер на команду help (подсказка по световой индикации)
+'''
+    '0': (255, 0, 0),
+    '1': (0, 255, 0),
+    '2': (0, 0, 255),
+    '3': (255, 255, 0),
+    '4': (255, 0, 255)
+'''
+@dp.message(Command("help"))
+async def help_message(message: Message):
+    await message.reply(f'''
+Подсказка по соответствию типа дефекта и цвета рамки:
+красная рамка — прилегающие дефекты (брызги, прожоги от дуги)
+зелёная рамка — дефекты целостности (кратер, шлак, свищ, пора, прожог, включения)
+синяя рамка — дефекты геометрии (подрез, непровар, наплыв, чешуйчатость, западание, неравномерность)
+жёлтая рамка — дефекты постобработки (заусенец, торец, задир, забоина)
+фиолетовая рамка — дефекты невыполнения (незаполнение раковины, несплавление) 
+''')
 
 # Хэндлер на режим ученика/специалиста ТК
 @dp.message(Command("student"))
@@ -104,7 +126,13 @@ async def end_repo(message: Message):
         Зугрузи фото или видео, прежде чем закончить отчёт. Сейчас я не вижу швов для отчёта.
         ''')
     else:
-        pass # логика формирования отчёта должна быть тут
+        if not os.path.isdir(os.path.join(os.getcwd(), 'submissions')):
+            os.mkdir('./submissions/')
+        inference_model([os.path.join(os.getcwd(), str(message.from_user.id),x) for x in os.listdir(os.path.join(os.getcwd(), str(message.from_user.id)))], model, f'./submissions/{str(message.from_user.id)}.csv')
+        await message.reply_document(
+            FSInputFile(
+                os.path.join(os.getcwd(), 'submissions', f'{str(message.from_user.id)}.csv'))
+        )
         try:
             connection = pyodbc.connect(
                 f"DSN={config.DSN};UID={config.UID};PWD={config.PWD}"
@@ -169,14 +197,19 @@ async def photo_message(message: Message, bot: Bot):
                                       }
     await bot.download(message.photo[-1], destination=os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg'))
     # тут надо добавить обработку файла с диска и его перезалив на диск в виде обработанного файла
-    await message.reply_photo(
-        FSInputFile(os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg'))
-    )
-    # после отправки файла, мы можем его затереть на диске
-    for label in model_response_classes_unique: #для уникальных типов дефектов на пикче
-        # Подсказка для студента, возможно, стоит добавить цикл по всем меткам
-        if data[message.from_user.id]['is_student']:
-            await message.reply(lib[int(label)])
+    res = model.inference(os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg'))[os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg')]
+    if len(res['class']) == 0:
+        await message.reply('Я не вижу дефектов здесь')
+    else:
+        paint(os.path.join(os.getcwd(), str(message.from_user.id), f'{count}.jpg'), res['bbox'], res['class'], os.path.join(os.getcwd(), str(message.from_user.id), f'{count}_bounded.jpg'))
+        await message.reply_photo(
+            FSInputFile(os.path.join(os.getcwd(), str(message.from_user.id), f'{count}_bounded.jpg'))
+        )
+        # после отправки файла, мы можем его затереть на диске
+        for label in set(res['class']): #для уникальных типов дефектов на пикче
+            # Подсказка для студента, возможно, стоит добавить цикл по всем меткам
+            if data[message.from_user.id]['is_student']:
+                await message.reply(lib[int(label)])
 
 # Хэндлер на работу с видео
 @dp.message(F.photo)
